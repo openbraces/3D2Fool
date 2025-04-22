@@ -1,33 +1,14 @@
 import os
-import sys
+import PIL
+import PIL.Image
 import cv2
 import numpy as np
 from tqdm import tqdm
-from PIL import Image
-import matplotlib.pyplot as plt
-import math
 import argparse
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 from torchvision import transforms
-import torch.nn.functional as F
 import torch.optim as optim
-
-from pytorch3d.io import load_objs_as_meshes, load_obj
-from pytorch3d.renderer import (
-    look_at_view_transform,
-    FoVPerspectiveCameras,
-    OpenGLPerspectiveCameras,
-    PointLights,
-    DirectionalLights,
-    Materials,
-    RasterizationSettings,
-    MeshRenderer,
-    MeshRasterizer,
-    HardPhongShader,
-    TexturesUV,
-    materials,
-)
 
 import networks
 from utils import download_model_if_doesnt_exist
@@ -192,8 +173,23 @@ def attack(args):
     )
 
     # continuous color
-    camou_para = torch.rand([1, h, w, 3]).float().to(args.device)
-    camou_para.requires_grad_(True)
+    # camou_para = torch.rand([1, h, w, 3]).float().to(args.device)
+    img = cv2.imread("texture_seed.png")
+    img.resize(w, h)
+    to_tensor = transforms.ToTensor()
+    camou_para = (
+        to_tensor(
+            PIL.Image.open("texture_seed.png")
+            .resize((w, h), PIL.Image.Resampling.BILINEAR)
+            .convert("RGB")
+        )
+        .permute(1, 2, 0)
+        .unsqueeze(0)
+        .to(args.device)
+        .clone()
+        .detach()
+        .requires_grad_(True)
+    )
     optimizer = optim.Adam([camou_para], lr=args.lr)
     camou_para1 = expand_kernel(camou_para.permute(0, 3, 1, 2)).permute(0, 2, 3, 1)
 
@@ -224,7 +220,7 @@ def attack(args):
             #     total_img_np0 = Image.fromarray(np.transpose(total_img_np0, (1,2,0)).astype('uint8'))
             #     total_img_np0.save(os.path.join(args.log_dir, 'test_total0.jpg'))
 
-            outputs0 = depth_model(input_image0)
+            depth_model(input_image0)
             mask = input_resize(mask)[:, 0, :, :]
             adv_loss = torch.sum(10 * torch.pow(outputs * mask, 2)) / torch.sum(mask)
             tv_loss = loss_smooth(camou_para) * 1e-1

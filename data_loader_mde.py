@@ -46,7 +46,7 @@ class MyDataset(Dataset):
         self.tex_trans_flag = tex_trans_flag
         self.phy_trans_flag = phy_trans_flag
         self.data_dir = data_dir + "rgb/"
-        with open(data_dir + "ann.pkl", "rb") as ann_file:
+        with open("./data/ann.pkl", "rb") as ann_file:
             self.ann = pickle.load(ann_file)
         self.files = os.listdir(self.data_dir)
         print("dataset length: ", len(self.files))
@@ -507,7 +507,7 @@ if __name__ == "__main__":
     device = torch.device("cuda:0")
     obj_name = "./car/lexus_hs.obj"
     camou_mask = "./car/mask.jpg"
-    camou_para = np.load("./res/res_base_norcv/10camou.npy")
+    camou_para = np.load("./res/10camou.npy")
     # camou_para = np.ones_like(camou_para)*0.8
     camou_para = torch.from_numpy(camou_para).to(device)
     resolution = 8
@@ -521,7 +521,7 @@ if __name__ == "__main__":
     camou_para1 = expand_kernel(camou_para.permute(0, 3, 1, 2)).permute(0, 2, 3, 1)
     camou_para1 = torch.clamp(camou_para1, 0, 1)
 
-    data_dir = "/data/zjh/mde_carla/"
+    data_dir = "./data/"
     img_size = (320, 1024)
 
     dataset = MyDataset(
