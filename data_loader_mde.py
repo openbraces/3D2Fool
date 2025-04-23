@@ -1,7 +1,6 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
 import os
-import sys
 import cv2
 import numpy as np
 from tqdm import tqdm
@@ -9,26 +8,19 @@ from PIL import Image
 import random
 import math
 import pickle
-import torch.nn.functional as F
 import torchvision.transforms as T
 import torchvision.transforms.functional as TF
 from pytorch3d.io import load_objs_as_meshes, load_obj
 from pytorch3d.renderer import (
     look_at_view_transform,
     FoVPerspectiveCameras,
-    OpenGLPerspectiveCameras,
     PointLights,
-    DirectionalLights,
     Materials,
     RasterizationSettings,
     MeshRenderer,
     MeshRasterizer,
-    SoftPhongShader,
     HardPhongShader,
     TexturesUV,
-    BlendParams,
-    SoftSilhouetteShader,
-    materials,
 )
 
 
@@ -49,7 +41,7 @@ class MyDataset(Dataset):
         with open("./data/ann.pkl", "rb") as ann_file:
             self.ann = pickle.load(ann_file)
         self.files = os.listdir(self.data_dir)
-        print("dataset length: ", len(self.files))
+        print("Dataset size: ", len(self.files))
         self.img_size = img_size
         self.device = device
         self.camou_mask = (
